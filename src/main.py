@@ -1,5 +1,5 @@
 import pandas as pd
-# import pandas_ta as ta
+import pandas_ta as ta
 from backtesting import Backtest
 from tqdm import tqdm
 import os
@@ -67,9 +67,9 @@ def add_total_signal(df):
     df['TotalSignal'] = df.progress_apply(lambda row: total_signal(df, row.name), axis=1)
     return df
 
-# def add_atr(df, length=10):
-#     df['ATR'] = ta.atr(df['High'], df['Low'], df['Close'], length)
-#     return df
+def add_atr(df, length=10):
+    df['atr'] = ta.atr(df['High'], df['Low'], df['Close'], length)
+    return df
 
 def add_pointpos_column(df, signal_column):
     """
@@ -206,7 +206,7 @@ def main():
 
     for i, df in enumerate(dataframes):
         print("working on dataframe ", i, "...")
-        # df = add_atr(df)
+        df = add_atr(df)
         df = add_total_signal(df)
         df = add_pointpos_column(df, "TotalSignal")
         dataframes[i] = df  # Update the dataframe in the list
@@ -219,11 +219,13 @@ def main():
 
     for df in dataframes:
         bt = Backtest(df, MyStrat, cash=5000, margin=1 / 5, commission=0.0002)
-        stats, heatmap = bt.optimize(slperc=[i / 100 for i in range(1, 8)],
-                                     tpperc=[i / 100 for i in range(1, 8)],
-                                     maximize='Return [%]', max_tries=3000,
-                                     random_state=0,
-                                     return_heatmap=True)
+        stats, heatmap = bt.optimize(
+                                    # slperc=[i / 100 for i in range(1, 8)],
+                                    # tpperc=[i / 100 for i in range(1, 8)],
+                                    sl_atr_ratio=[i/10 for i in range(1, 100)],
+                                    maximize='Return [%]', max_tries=3000,
+                                    random_state=0,
+                                    return_heatmap=True)
         # print(bt.run())
         # bt.plot(plot_return=True, plot_drawdown=True, smooth_equity=True)
 
@@ -231,7 +233,15 @@ def main():
         heatmaps.append(heatmap)
 
     display_results(results, file_names)
-    # print(results[1])
+
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+
+    # Convert multiindex series to dataframe
+    # heatmap_df = heatmaps[0].unstack()
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(heatmaps, annot=True, cmap='viridis', fmt='.0f')
+    plt.show()
 
 if __name__ == '__main__':
     main()
