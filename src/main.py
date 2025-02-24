@@ -218,7 +218,7 @@ def main():
     heatmaps = []
 
     for df in dataframes:
-        bt = Backtest(df, MyStrat, cash=5000, margin=1 / 5, commission=0.0002)
+        bt = Backtest(df, MyStrat, cash=5000, margin=1 / 50, commission=0.0002)
         stats, heatmap = bt.optimize(
                                     # slperc=[i / 100 for i in range(1, 8)],
                                     # tpperc=[i / 100 for i in range(1, 8)],
@@ -242,6 +242,7 @@ def main():
     plt.figure(figsize=(10, 8))
     sns.heatmap(heatmaps, annot=True, cmap='viridis', fmt='.0f')
     plt.show()
+
 
 if __name__ == '__main__':
     main()
